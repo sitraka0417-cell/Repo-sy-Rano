@@ -145,7 +145,16 @@ class TimerService : Service() {
 
         fun send(c: Context, action: String, sec: Int = 0) {
             val i = Intent(c, TimerService::class.java).setAction(action).putExtra("sec", sec)
-            ContextCompat.startForegroundService(c, i)
+            try {
+                ContextCompat.startForegroundService(c, i)
+            } catch (e: Exception) {
+                // Certains appareils refusent le démarrage en premier plan : on tente un démarrage simple
+                try {
+                    c.startService(i)
+                } catch (e2: Exception) {
+                    android.widget.Toast.makeText(c, "Impossible de démarrer le chronomètre", android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
@@ -161,6 +170,18 @@ class TimerService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startFg()
+        try {
+            handleCommand(intent)
+        } catch (e: Exception) {
+            Chrono.phase = Phase.IDLE
+            Chrono.remainingMs = 0
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+        }
+        return START_NOT_STICKY
+    }
+
+    private fun handleCommand(intent: Intent?) {
         val action = intent?.action
         val sec = intent?.getIntExtra("sec", 300) ?: 300
         val tok = intent?.getIntExtra("token", -1) ?: -1
@@ -187,7 +208,6 @@ class TimerService : Service() {
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
         }
-        return START_NOT_STICKY
     }
 
     override fun onDestroy() {
@@ -360,10 +380,18 @@ class TimerService : Service() {
 
     private fun startFg() {
         val n = buildNotif()
-        if (Build.VERSION.SDK_INT >= 34) {
-            startForeground(Notifs.ID_FG, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
-        } else {
-            startForeground(Notifs.ID_FG, n)
+        try {
+            if (Build.VERSION.SDK_INT >= 34) {
+                startForeground(Notifs.ID_FG, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            } else {
+                startForeground(Notifs.ID_FG, n)
+            }
+        } catch (e: Exception) {
+            // Repli : sans type de service, puis sans premier plan (le chrono continue dans l'appli)
+            try {
+                startForeground(Notifs.ID_FG, n)
+            } catch (e2: Exception) {
+            }
         }
     }
 
@@ -380,11 +408,18 @@ class TimerService : Service() {
     )
 
     private fun scheduleEndAlarm(atWall: Long) {
-        am.setAlarmClock(AlarmManager.AlarmClockInfo(atWall, Notifs.openApp(this)), endPi())
+        try {
+            am.setAlarmClock(AlarmManager.AlarmClockInfo(atWall, Notifs.openApp(this)), endPi())
+        } catch (e: Exception) {
+            // Alarme refusée par l'appareil : le décompte interne prend le relais
+        }
     }
 
     private fun cancelEndAlarm() {
-        am.cancel(endPi())
+        try {
+            am.cancel(endPi())
+        } catch (e: Exception) {
+        }
     }
 }
 

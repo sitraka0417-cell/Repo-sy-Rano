@@ -137,7 +137,7 @@ object Prefs {
         private set
     var waterIntervalSec by mutableIntStateOf(3600)
         private set
-    var cupMl by mutableIntStateOf(250)
+    var cupMl by mutableIntStateOf(125)
         private set
     var waterNext by mutableLongStateOf(0L)
         private set
@@ -164,7 +164,7 @@ object Prefs {
         waterGoal = sp.getInt("waterGoal", 15)
         waterAuto = sp.getBoolean("waterAuto", false)
         waterIntervalSec = sp.getInt("waterIntervalSec", 3600)
-        cupMl = sp.getInt("cupMl", 250)
+        cupMl = sp.getInt("cupMl", 125)
         waterNext = sp.getLong("waterNext", 0L)
         pinHash = sp.getString("pinHash", null)
         pinSalt = sp.getString("pinSalt", "") ?: ""

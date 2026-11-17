@@ -134,7 +134,7 @@ fun WaterScreen(onHistory: () -> Unit) {
             Text("Taille d'un verre", fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(8.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(listOf(150, 200, 250, 300, 500)) { ml ->
+                items(listOf(125, 150, 200, 250, 300, 500)) { ml ->
                     FilterChip(
                         selected = Prefs.cupMl == ml, onClick = { Prefs.changeCupMl(ml) },
                         label = { Text("$ml ml") }

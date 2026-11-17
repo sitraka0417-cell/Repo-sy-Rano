@@ -12,8 +12,9 @@ android {
         applicationId = "mg.sitraka.ranorepo"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        val run = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0
+        versionCode = 10 + run
+        versionName = "1.0.$run"
     }
 
     signingConfigs {
