@@ -35,20 +35,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.Instant
 
-data class HEntry(val id: String, val ts: Long, val value: Long)
+data class HEntry(val id: String, val ts: Long, val value: Long, val label: String = "")
 
 @Composable
 fun HistoryScreen(kind: String, onBack: () -> Unit) {
     val cs = MaterialTheme.colorScheme
     val isRepo = kind == "repo"
+    val isSport = kind == "sport"
+    val accent = when {
+        isRepo -> cs.secondary
+        isSport -> cs.tertiary
+        else -> cs.primary
+    }
     var period by remember { mutableStateOf(PeriodKind.DAY) }
     var offset by remember { mutableIntStateOf(0) }
     var detailed by remember { mutableStateOf(false) }
     var toDelete by remember { mutableStateOf<HEntry?>(null) }
 
     val r = remember(period, offset) { rangeFor(period, offset) }
-    val all = if (isRepo) Store.repos.map { HEntry(it.id, it.ts, it.sec.toLong()) }
-    else Store.waters.map { HEntry(it.id, it.ts, 1L) }
+    val all = when {
+        isRepo -> Store.repos.map { HEntry(it.id, it.ts, it.sec.toLong()) }
+        isSport -> Store.sports.map { HEntry(it.id, it.ts, it.sec.toLong(), it.type) }
+        else -> Store.waters.map { HEntry(it.id, it.ts, 1L) }
+    }
     val entries = all.filter { it.ts >= r.from && it.ts < r.to }.sortedByDescending { it.ts }
     val total = entries.sumOf { it.value }
     val vals = r.buckets.map { b -> entries.filter { it.ts >= b.from && it.ts < b.to }.sumOf { it.value } }
@@ -63,7 +72,11 @@ fun HistoryScreen(kind: String, onBack: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onBack) { Icon(Icons.Rounded.Close, "Fermer") }
                 Text(
-                    if (isRepo) "Historique des repos" else "Historique de l'eau",
+                    when {
+                        isRepo -> "Historique des repos"
+                        isSport -> "Historique du sport"
+                        else -> "Historique de l'eau"
+                    },
                     fontSize = 22.sp, fontWeight = FontWeight.ExtraBold
                 )
             }
@@ -97,6 +110,26 @@ fun HistoryScreen(kind: String, onBack: () -> Unit) {
                 if (isRepo) {
                     Text(fmtDur(total), fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = cs.secondary)
                     Text("${entries.size} repos", color = cs.onSurfaceVariant, fontSize = 13.sp)
+                } else if (isSport) {
+                    Text(fmtDur(total), fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = cs.tertiary)
+                    Text(
+                        if (entries.size == 1) "1 séance" else "${entries.size} séances",
+                        color = cs.onSurfaceVariant, fontSize = 13.sp
+                    )
+                    if (period == PeriodKind.WEEK) {
+                        Text(
+                            "Objectif de la semaine : ${fmtMinutes(Prefs.sportGoalMin.toLong())}",
+                            color = cs.onSurfaceVariant, fontSize = 13.sp
+                        )
+                    }
+                    entries.groupBy { it.label }.toList()
+                        .sortedByDescending { p -> p.second.sumOf { e -> e.value } }
+                        .forEach { (name, l) ->
+                            Text(
+                                "$name : ${fmtDur(l.sumOf { e -> e.value })}",
+                                color = cs.onSurfaceVariant, fontSize = 13.sp
+                            )
+                        }
                 } else {
                     Text(
                         "$total verre(s)", fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = cs.primary
@@ -107,7 +140,7 @@ fun HistoryScreen(kind: String, onBack: () -> Unit) {
         }
         item {
             AppCard {
-                BarChart(vals, r.buckets.map { it.label }, if (isRepo) cs.secondary else cs.primary)
+                BarChart(vals, r.buckets.map { it.label }, accent)
             }
         }
         item {
@@ -132,8 +165,8 @@ fun HistoryScreen(kind: String, onBack: () -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(fmtDay(date), Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
                     Text(
-                        if (isRepo) fmtDur(sum) else "$sum verre(s)",
-                        fontWeight = FontWeight.Bold, color = if (isRepo) cs.secondary else cs.primary
+                        if (isRepo || isSport) fmtDur(sum) else "$sum verre(s)",
+                        fontWeight = FontWeight.Bold, color = accent
                     )
                 }
                 if (detailed) {
@@ -143,7 +176,11 @@ fun HistoryScreen(kind: String, onBack: () -> Unit) {
                             Text(fmtHour(e.ts), fontWeight = FontWeight.Medium, color = cs.onSurfaceVariant)
                             Spacer(Modifier.width(14.dp))
                             Text(
-                                if (isRepo) fmtDur(e.value) else "1 verre (${Prefs.cupMl} ml)",
+                                when {
+                                    isRepo -> fmtDur(e.value)
+                                    isSport -> "${e.label} · ${fmtDur(e.value)}"
+                                    else -> "1 verre (${Prefs.cupMl} ml)"
+                                },
                                 Modifier.weight(1f)
                             )
                             IconButton(onClick = { toDelete = e }) {
@@ -163,7 +200,11 @@ fun HistoryScreen(kind: String, onBack: () -> Unit) {
             "L'entrée de ${fmtHour(d.ts)} sera supprimée de l'historique.",
             "Supprimer",
             onConfirm = {
-                if (isRepo) Store.deleteRepo(d.id) else Store.deleteWater(d.id)
+                when {
+                    isRepo -> Store.deleteRepo(d.id)
+                    isSport -> Store.deleteSport(d.id)
+                    else -> Store.deleteWater(d.id)
+                }
                 toDelete = null
             },
             onDismiss = { toDelete = null }

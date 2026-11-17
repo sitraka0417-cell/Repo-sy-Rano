@@ -235,7 +235,7 @@ fun RepoScreen(onHistory: () -> Unit) {
             Text("Repos d'aujourd'hui", color = cs.onSurfaceVariant, fontSize = 14.sp)
             Text(fmtDur(todaySec), fontSize = 30.sp, fontWeight = FontWeight.ExtraBold, color = cs.secondary)
             Text(
-                if (today.isEmpty()) "Aucun repos pour l'instant" else "${today.size} repos effectué(s)",
+                if (today.isEmpty()) "Aucun repos pour l'instant" else if (today.size == 1) "1 repos effectué" else "${today.size} repos effectués",
                 color = cs.onSurfaceVariant, fontSize = 13.sp
             )
             Spacer(Modifier.height(12.dp))

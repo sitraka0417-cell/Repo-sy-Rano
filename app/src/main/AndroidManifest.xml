@@ -38,5 +38,6 @@
         </service>
 
         <receiver android:name=".WaterReceiver" android:exported="false" />
+        <receiver android:name=".SportReceiver" android:exported="false" />
     </application>
 </manifest>

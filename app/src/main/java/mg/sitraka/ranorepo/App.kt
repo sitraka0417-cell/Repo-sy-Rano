@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FitnessCenter
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.WaterDrop
@@ -41,9 +42,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.CircleShape
@@ -56,6 +60,7 @@ class App : Application() {
         Prefs.init(this)
         Store.init(this)
         Notifs.createChannels(this)
+        SportRun.init(this)
         Auth.init()
     }
 }
@@ -119,9 +124,12 @@ fun Header(onAvatar: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
-            Text("Rano & Repo", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
             Text(
-                if (!first.isNullOrBlank()) "Bonjour, $first" else "Pauses et hydratation",
+                "Rano & Repos & Sport", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold,
+                maxLines = 1, overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                if (!first.isNullOrBlank()) "Bonjour, $first" else "Repos, eau et sport",
                 color = cs.onSurfaceVariant, fontSize = 14.sp
             )
         }
@@ -148,7 +156,8 @@ fun MainShell(act: MainActivity) {
                     listOf(
                         Triple("Repos", Icons.Rounded.Timer, 0),
                         Triple("Eau", Icons.Rounded.WaterDrop, 1),
-                        Triple("Réglages", Icons.Rounded.Settings, 2)
+                        Triple("Sport", Icons.Rounded.FitnessCenter, 2),
+                        Triple("Réglages", Icons.Rounded.Settings, 3)
                     ).forEach { (label, icon, i) ->
                         NavigationBarItem(
                             selected = tab == i, onClick = { tab = i },
@@ -159,15 +168,31 @@ fun MainShell(act: MainActivity) {
             }
         }
     ) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize()) {
+        // Glisser vers la gauche ou la droite pour changer de section
+        val swipe = Modifier.pointerInput(tab, history) {
+            var total = 0f
+            detectHorizontalDragGestures(
+                onDragStart = { total = 0f },
+                onDragCancel = { total = 0f },
+                onDragEnd = {
+                    if (history == null) {
+                        if (total < -140f && tab < 3) tab += 1
+                        else if (total > 140f && tab > 0) tab -= 1
+                    }
+                },
+                onHorizontalDrag = { _, dx -> total += dx }
+            )
+        }
+        Column(Modifier.padding(pad).fillMaxSize().then(swipe)) {
             val h = history
             if (h != null) {
                 HistoryScreen(h) { history = null }
             } else {
-                Header { tab = 2 }
+                Header { tab = 3 }
                 when (tab) {
                     0 -> RepoScreen { history = "repo" }
                     1 -> WaterScreen { history = "water" }
+                    2 -> SportScreen { history = "sport" }
                     else -> SettingsScreen(act)
                 }
             }

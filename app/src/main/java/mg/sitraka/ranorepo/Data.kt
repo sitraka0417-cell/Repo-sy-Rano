@@ -116,6 +116,7 @@ fun rangeFor(p: PeriodKind, offset: Int): PRange {
 object Prefs {
     private lateinit var sp: SharedPreferences
     val DEFAULT_MODELS = listOf(300, 15)
+    val DEFAULT_SPORTS = listOf("Marche rapide", "Course")
 
     var theme by mutableStateOf("dark")
         private set
@@ -147,6 +148,24 @@ object Prefs {
         private set
     var biometric by mutableStateOf(false)
         private set
+    var sportGoalMin by mutableIntStateOf(150)
+        private set
+    var sportTypes by mutableStateOf(DEFAULT_SPORTS)
+        private set
+    var sportSelected by mutableStateOf("Marche rapide")
+        private set
+    var sportEstOn by mutableStateOf(false)
+        private set
+    var sportEstMin by mutableIntStateOf(15)
+        private set
+    var sportSplit by mutableStateOf(false)
+        private set
+    var sportSplitCustom by mutableStateOf(false)
+        private set
+    var sportSplitDays by mutableIntStateOf(5)
+        private set
+    var sportDayMin by mutableStateOf(listOf(0, 0, 0, 0, 0, 0, 0))
+        private set
     private var pinSalt = ""
 
     val pinEnabled: Boolean get() = pinHash != null
@@ -170,6 +189,22 @@ object Prefs {
         pinSalt = sp.getString("pinSalt", "") ?: ""
         pinLen = sp.getInt("pinLen", 4)
         biometric = sp.getBoolean("biometric", false)
+        sportGoalMin = sp.getInt("sportGoalMin", 150)
+        sportTypes = try {
+            val a = JSONArray(sp.getString("sportTypes", null) ?: "[]")
+            val l = (0 until a.length()).map { a.getString(it) }.filter { it.isNotBlank() }
+            if (l.isEmpty()) DEFAULT_SPORTS else l
+        } catch (_: Exception) {
+            DEFAULT_SPORTS
+        }
+        sportSelected = sp.getString("sportSelected", null) ?: DEFAULT_SPORTS[0]
+        sportEstOn = sp.getBoolean("sportEstOn", false)
+        sportEstMin = sp.getInt("sportEstMin", 15)
+        sportSplit = sp.getBoolean("sportSplit", false)
+        sportSplitCustom = sp.getBoolean("sportSplitCustom", false)
+        sportSplitDays = sp.getInt("sportSplitDays", 5).coerceIn(1, 7)
+        val dm = (sp.getString("sportDayMin", "0,0,0,0,0,0,0") ?: "").split(",").mapNotNull { it.trim().toIntOrNull() }
+        sportDayMin = if (dm.size == 7) dm else listOf(0, 0, 0, 0, 0, 0, 0)
     }
 
     fun changeTheme(v: String) { theme = v; sp.edit().putString("theme", v).apply() }
@@ -200,6 +235,33 @@ object Prefs {
     fun changeCupMl(v: Int) { cupMl = v; sp.edit().putInt("cupMl", v).apply() }
     fun changeWaterNext(v: Long) { waterNext = v; sp.edit().putLong("waterNext", v).apply() }
 
+    // --- Sport ---
+    fun changeSportGoalMin(v: Int) { sportGoalMin = v.coerceIn(1, 5000); sp.edit().putInt("sportGoalMin", sportGoalMin).apply() }
+    private fun saveSportTypes(l: List<String>) {
+        sportTypes = l
+        sp.edit().putString("sportTypes", JSONArray(l).toString()).apply()
+    }
+    fun changeSportSelected(v: String) { sportSelected = v; sp.edit().putString("sportSelected", v).apply() }
+    fun addSportType(name: String) {
+        val n = name.trim()
+        if (n.isNotEmpty() && sportTypes.none { it.equals(n, ignoreCase = true) }) saveSportTypes(sportTypes + n)
+    }
+    fun removeSportType(name: String) {
+        saveSportTypes(sportTypes.filter { it != name })
+        changeSportSelected(sportTypes.firstOrNull() ?: DEFAULT_SPORTS[0])
+    }
+    fun changeSportEstOn(v: Boolean) { sportEstOn = v; sp.edit().putBoolean("sportEstOn", v).apply() }
+    fun changeSportEstMin(v: Int) { sportEstMin = v.coerceIn(1, 1000); sp.edit().putInt("sportEstMin", sportEstMin).apply() }
+    fun changeSportSplit(v: Boolean) { sportSplit = v; sp.edit().putBoolean("sportSplit", v).apply() }
+    fun changeSportSplitCustom(v: Boolean) { sportSplitCustom = v; sp.edit().putBoolean("sportSplitCustom", v).apply() }
+    fun changeSportSplitDays(v: Int) { sportSplitDays = v.coerceIn(1, 7); sp.edit().putInt("sportSplitDays", sportSplitDays).apply() }
+    fun changeSportDayMin(l: List<Int>) {
+        if (l.size == 7) {
+            sportDayMin = l
+            sp.edit().putString("sportDayMin", l.joinToString(",")).apply()
+        }
+    }
+
     private fun hash(salt: String, pin: String): String =
         MessageDigest.getInstance("SHA-256").digest((salt + pin).toByteArray())
             .joinToString("") { String.format("%02x", it) }
@@ -228,10 +290,12 @@ object Prefs {
 
 data class RepoRec(val id: String, val ts: Long, val sec: Int)
 data class WaterRec(val id: String, val ts: Long)
+data class SportRec(val id: String, val ts: Long, val sec: Int, val type: String)
 
 object Store {
     val repos = mutableStateListOf<RepoRec>()
     val waters = mutableStateListOf<WaterRec>()
+    val sports = mutableStateListOf<SportRec>()
     private lateinit var sp: SharedPreferences
     private val regs = mutableListOf<ListenerRegistration>()
     private var uid: String? = null
@@ -249,6 +313,11 @@ object Store {
                 val o = w.getJSONObject(i)
                 waters.add(WaterRec(o.getString("id"), o.getLong("ts")))
             }
+            val s = JSONArray(sp.getString("sports", "[]"))
+            for (i in 0 until s.length()) {
+                val o = s.getJSONObject(i)
+                sports.add(SportRec(o.getString("id"), o.getLong("ts"), o.getInt("sec"), o.optString("type", "Sport")))
+            }
         } catch (_: Exception) {
         }
     }
@@ -258,7 +327,9 @@ object Store {
         repos.forEach { a.put(JSONObject().put("id", it.id).put("ts", it.ts).put("sec", it.sec)) }
         val w = JSONArray()
         waters.forEach { w.put(JSONObject().put("id", it.id).put("ts", it.ts)) }
-        sp.edit().putString("repos", a.toString()).putString("waters", w.toString()).apply()
+        val s = JSONArray()
+        sports.forEach { s.put(JSONObject().put("id", it.id).put("ts", it.ts).put("sec", it.sec).put("type", it.type)) }
+        sp.edit().putString("repos", a.toString()).putString("waters", w.toString()).putString("sports", s.toString()).apply()
     }
 
     private fun col(name: String) = FirebaseFirestore.getInstance()
@@ -278,6 +349,19 @@ object Store {
         if (uid != null) col("waters").document(r.id).set(mapOf("ts" to r.ts))
     }
 
+    fun addSport(sec: Int, type: String) {
+        val r = SportRec(UUID.randomUUID().toString(), System.currentTimeMillis(), sec, type)
+        sports.add(r)
+        save()
+        if (uid != null) col("sports").document(r.id).set(mapOf("ts" to r.ts, "sec" to r.sec, "type" to r.type))
+    }
+
+    fun deleteSport(id: String) {
+        sports.removeAll { it.id == id }
+        save()
+        if (uid != null) col("sports").document(id).delete()
+    }
+
     fun deleteRepo(id: String) {
         repos.removeAll { it.id == id }
         save()
@@ -293,6 +377,7 @@ object Store {
     fun clearLocal() {
         repos.clear()
         waters.clear()
+        sports.clear()
         save()
     }
 
@@ -302,6 +387,7 @@ object Store {
         uid = u
         repos.forEach { col("repos").document(it.id).set(mapOf("ts" to it.ts, "sec" to it.sec)) }
         waters.forEach { col("waters").document(it.id).set(mapOf("ts" to it.ts)) }
+        sports.forEach { col("sports").document(it.id).set(mapOf("ts" to it.ts, "sec" to it.sec, "type" to it.type)) }
 
         regs.add(col("repos").addSnapshotListener { snap, _ ->
             if (snap == null) return@addSnapshotListener
@@ -344,6 +430,33 @@ object Store {
                     }
                     DocumentChange.Type.REMOVED -> {
                         if (waters.removeAll { it.id == d.id }) changed = true
+                    }
+                }
+            }
+            if (changed) save()
+        })
+        listenSports()
+    }
+
+    private fun listenSports() {
+        regs.add(col("sports").addSnapshotListener { snap, _ ->
+            if (snap == null) return@addSnapshotListener
+            var changed = false
+            for (ch in snap.documentChanges) {
+                val d = ch.document
+                when (ch.type) {
+                    DocumentChange.Type.ADDED, DocumentChange.Type.MODIFIED -> {
+                        if (sports.none { it.id == d.id }) {
+                            val ts = d.getLong("ts")
+                            val sec = d.getLong("sec")
+                            if (ts != null && sec != null) {
+                                sports.add(SportRec(d.id, ts, sec.toInt(), d.getString("type") ?: "Sport"))
+                                changed = true
+                            }
+                        }
+                    }
+                    DocumentChange.Type.REMOVED -> {
+                        if (sports.removeAll { it.id == d.id }) changed = true
                     }
                 }
             }

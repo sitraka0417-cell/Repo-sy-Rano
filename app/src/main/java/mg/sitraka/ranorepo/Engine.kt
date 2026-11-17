@@ -39,9 +39,12 @@ object Notifs {
     const val CH_TIMER = "timer_v1"
     const val CH_ALERT = "alert_v1"
     const val CH_WATER = "water_v1"
+    const val CH_SPORT = "sport_v1"
     const val ID_FG = 1
     const val ID_ALERT = 2
     const val ID_WATER = 3
+    const val ID_SPORT_RUN = 4
+    const val ID_SPORT_END = 5
 
     fun createChannels(c: Context) {
         val nm = c.getSystemService(NotificationManager::class.java)
@@ -67,6 +70,13 @@ object Notifs {
                 setSound(sound, attrs)
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 400, 200, 400)
+            }
+        )
+        nm.createNotificationChannel(
+            NotificationChannel(CH_SPORT, "Fin de séance de sport", NotificationManager.IMPORTANCE_HIGH).apply {
+                setSound(sound, attrs)
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0, 600, 300, 600)
             }
         )
     }
@@ -262,7 +272,7 @@ class TimerService : Service() {
                 } else {
                     finishIdle()
                 }
-                ring("Repo terminé", "Au travail maintenant")
+                ring("Repos terminé", "Au travail maintenant")
                 if (Chrono.phase == Phase.IDLE) watchIdle()
             }
             Phase.WORK -> {
@@ -350,7 +360,7 @@ class TimerService : Service() {
             Phase.WORK -> "Travail en cours"
             Phase.WAIT_PAUSE -> "Temps de pause"
             Phase.WAIT_WORK -> "Temps de travail"
-            Phase.IDLE -> "Rano & Repo"
+            Phase.IDLE -> "Rano & Repos & Sport"
         }
         val text = when (ph) {
             Phase.PAUSE -> "Profitez de votre pause"

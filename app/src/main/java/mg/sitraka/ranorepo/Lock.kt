@@ -51,7 +51,7 @@ object Biometric {
             }
         })
         val info = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Déverrouiller Rano & Repo")
+            .setTitle("Déverrouiller Rano & Repos & Sport")
             .setSubtitle("Posez votre doigt sur le capteur")
             .setNegativeButtonText("Utiliser le code PIN")
             .setAllowedAuthenticators(AUTH)
@@ -103,7 +103,7 @@ fun LockScreen(act: FragmentActivity, onUnlock: () -> Unit) {
             contentAlignment = Alignment.Center
         ) { Icon(Icons.Rounded.Lock, null, tint = cs.onPrimary, modifier = Modifier.size(34.dp)) }
         Spacer(Modifier.height(16.dp))
-        Text("Rano & Repo", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("Rano & Repos & Sport", fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Text(
             if (error) "Code incorrect, réessayez" else "Entrez votre code PIN",
             color = if (error) cs.error else cs.onSurfaceVariant

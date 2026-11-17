@@ -167,7 +167,7 @@ fun SettingsScreen(act: FragmentActivity) {
                 Text("Compte et synchronisation", fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Connectez-vous avec Google pour retrouver vos historiques de repos et d'eau sur tous vos appareils.",
+                    "Connectez-vous avec Google pour retrouver vos historiques de repos, d'eau et de sport sur tous vos appareils.",
                     color = cs.onSurfaceVariant, fontSize = 13.sp
                 )
                 Spacer(Modifier.height(14.dp))
@@ -269,7 +269,12 @@ fun SettingsScreen(act: FragmentActivity) {
         AppCard {
             Text("À propos", fontSize = 17.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(4.dp))
-            Text("Rano & Repo · version 1.0.0", color = cs.onSurfaceVariant, fontSize = 13.sp)
+            val ver = try {
+                ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName ?: ""
+            } catch (_: Exception) {
+                ""
+            }
+            Text("Rano & Repos & Sport · version $ver", color = cs.onSurfaceVariant, fontSize = 13.sp)
         }
         Spacer(Modifier.height(12.dp))
     }
