@@ -172,7 +172,7 @@ object Prefs {
         biometric = sp.getBoolean("biometric", false)
     }
 
-    fun setTheme(v: String) { theme = v; sp.edit().putString("theme", v).apply() }
+    fun changeTheme(v: String) { theme = v; sp.edit().putString("theme", v).apply() }
     fun selectSec(v: Int) { selectedSec = v; sp.edit().putInt("selectedSec", v).apply() }
 
     private fun saveModels(l: List<Int>) {
@@ -189,16 +189,16 @@ object Prefs {
         selectSec(models.firstOrNull() ?: 300)
     }
 
-    fun setAutoEnabled(v: Boolean) { autoEnabled = v; sp.edit().putBoolean("autoEnabled", v).apply() }
-    fun setWorkSec(v: Int) { workSec = v; sp.edit().putInt("workSec", v).apply() }
+    fun changeAutoEnabled(v: Boolean) { autoEnabled = v; sp.edit().putBoolean("autoEnabled", v).apply() }
+    fun changeWorkSec(v: Int) { workSec = v; sp.edit().putInt("workSec", v).apply() }
     fun setAutoPause(v: Int) { autoPauseSec = v; sp.edit().putInt("autoPauseSec", v).apply() }
-    fun setAutoConfirm(v: Boolean) { autoConfirm = v; sp.edit().putBoolean("autoConfirm", v).apply() }
+    fun changeAutoConfirm(v: Boolean) { autoConfirm = v; sp.edit().putBoolean("autoConfirm", v).apply() }
 
-    fun setWaterGoal(v: Int) { waterGoal = v.coerceIn(1, 40); sp.edit().putInt("waterGoal", waterGoal).apply() }
-    fun setWaterAuto(v: Boolean) { waterAuto = v; sp.edit().putBoolean("waterAuto", v).apply() }
+    fun changeWaterGoal(v: Int) { waterGoal = v.coerceIn(1, 40); sp.edit().putInt("waterGoal", waterGoal).apply() }
+    fun changeWaterAuto(v: Boolean) { waterAuto = v; sp.edit().putBoolean("waterAuto", v).apply() }
     fun setWaterInterval(v: Int) { waterIntervalSec = v; sp.edit().putInt("waterIntervalSec", v).apply() }
-    fun setCupMl(v: Int) { cupMl = v; sp.edit().putInt("cupMl", v).apply() }
-    fun setWaterNext(v: Long) { waterNext = v; sp.edit().putLong("waterNext", v).apply() }
+    fun changeCupMl(v: Int) { cupMl = v; sp.edit().putInt("cupMl", v).apply() }
+    fun changeWaterNext(v: Long) { waterNext = v; sp.edit().putLong("waterNext", v).apply() }
 
     private fun hash(salt: String, pin: String): String =
         MessageDigest.getInstance("SHA-256").digest((salt + pin).toByteArray())
@@ -221,7 +221,7 @@ object Prefs {
         val h = pinHash ?: return false
         return hash(pinSalt, pin) == h
     }
-    fun setBiometric(v: Boolean) { biometric = v; sp.edit().putBoolean("biometric", v).apply() }
+    fun changeBiometric(v: Boolean) { biometric = v; sp.edit().putBoolean("biometric", v).apply() }
 }
 
 // ---------- Données (historique) ----------

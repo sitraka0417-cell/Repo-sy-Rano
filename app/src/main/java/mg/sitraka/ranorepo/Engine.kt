@@ -403,7 +403,7 @@ object WaterReminder {
     fun schedule(c: Context, at: Long) {
         val am = c.getSystemService(AlarmManager::class.java)
         am.setAlarmClock(AlarmManager.AlarmClockInfo(at, Notifs.openApp(c)), remindPi(c))
-        Prefs.setWaterNext(at)
+        Prefs.changeWaterNext(at)
     }
 
     fun scheduleFromNow(c: Context) {
@@ -413,7 +413,7 @@ object WaterReminder {
     fun cancel(c: Context) {
         c.getSystemService(AlarmManager::class.java).cancel(remindPi(c))
         c.getSystemService(NotificationManager::class.java).cancel(Notifs.ID_WATER)
-        Prefs.setWaterNext(0L)
+        Prefs.changeWaterNext(0L)
     }
 }
 
@@ -422,7 +422,7 @@ class WaterReceiver : BroadcastReceiver() {
         val nm = c.getSystemService(NotificationManager::class.java)
         when (i.action) {
             WaterReminder.A_REMIND -> {
-                Prefs.setWaterNext(0L)
+                Prefs.changeWaterNext(0L)
                 val cups = Store.waters.count { it.ts >= startOfDay(System.currentTimeMillis()) }
                 val flags = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                 val drink = PendingIntent.getBroadcast(

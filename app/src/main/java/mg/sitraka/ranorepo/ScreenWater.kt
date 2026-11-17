@@ -123,12 +123,12 @@ fun WaterScreen(onHistory: () -> Unit) {
         AppCard {
             Text("Objectif quotidien", fontWeight = FontWeight.SemiBold)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                FilledIconButton(onClick = { Prefs.setWaterGoal(goal - 1) }) { Icon(Icons.Rounded.Remove, "Moins") }
+                FilledIconButton(onClick = { Prefs.changeWaterGoal(goal - 1) }) { Icon(Icons.Rounded.Remove, "Moins") }
                 Text(
                     "$goal verres", Modifier.weight(1f), textAlign = TextAlign.Center,
                     fontSize = 22.sp, fontWeight = FontWeight.Bold
                 )
-                FilledIconButton(onClick = { Prefs.setWaterGoal(goal + 1) }) { Icon(Icons.Rounded.Add, "Plus") }
+                FilledIconButton(onClick = { Prefs.changeWaterGoal(goal + 1) }) { Icon(Icons.Rounded.Add, "Plus") }
             }
             Spacer(Modifier.height(12.dp))
             Text("Taille d'un verre", fontWeight = FontWeight.SemiBold)
@@ -136,7 +136,7 @@ fun WaterScreen(onHistory: () -> Unit) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(listOf(150, 200, 250, 300, 500)) { ml ->
                     FilterChip(
-                        selected = Prefs.cupMl == ml, onClick = { Prefs.setCupMl(ml) },
+                        selected = Prefs.cupMl == ml, onClick = { Prefs.changeCupMl(ml) },
                         label = { Text("$ml ml") }
                     )
                 }
@@ -156,7 +156,7 @@ fun WaterScreen(onHistory: () -> Unit) {
                     )
                 }
                 Switch(checked = Prefs.waterAuto, onCheckedChange = {
-                    Prefs.setWaterAuto(it)
+                    Prefs.changeWaterAuto(it)
                     if (it) WaterReminder.scheduleFromNow(ctx) else WaterReminder.cancel(ctx)
                 })
             }

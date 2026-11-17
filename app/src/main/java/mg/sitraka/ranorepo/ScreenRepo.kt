@@ -181,7 +181,7 @@ fun RepoScreen(onHistory: () -> Unit) {
                     Text("Alterne travail et repos tout seul", color = cs.onSurfaceVariant, fontSize = 13.sp)
                 }
                 Switch(
-                    checked = Prefs.autoEnabled, onCheckedChange = { Prefs.setAutoEnabled(it) },
+                    checked = Prefs.autoEnabled, onCheckedChange = { Prefs.changeAutoEnabled(it) },
                     enabled = !Chrono.auto
                 )
             }
@@ -211,7 +211,7 @@ fun RepoScreen(onHistory: () -> Unit) {
                             color = cs.onSurfaceVariant, fontSize = 12.sp
                         )
                     }
-                    Switch(checked = Prefs.autoConfirm, onCheckedChange = { Prefs.setAutoConfirm(it) })
+                    Switch(checked = Prefs.autoConfirm, onCheckedChange = { Prefs.changeAutoConfirm(it) })
                 }
                 Spacer(Modifier.height(14.dp))
                 if (!Chrono.auto) {
@@ -290,7 +290,7 @@ fun RepoScreen(onHistory: () -> Unit) {
     }
     if (showWorkDlg) {
         DurationDialog("Durée de travail", Prefs.workSec, { showWorkDlg = false }) { sec ->
-            Prefs.setWorkSec(sec)
+            Prefs.changeWorkSec(sec)
             showWorkDlg = false
         }
     }

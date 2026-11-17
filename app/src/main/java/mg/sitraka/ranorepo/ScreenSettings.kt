@@ -211,15 +211,15 @@ fun SettingsScreen(act: FragmentActivity) {
                 ThemeCard(
                     "Sombre", Icons.Rounded.DarkMode, listOf(Color(0xFF0A1020), Color(0xFF1B2742)),
                     Prefs.theme == "dark", Modifier.weight(1f)
-                ) { Prefs.setTheme("dark") }
+                ) { Prefs.changeTheme("dark") }
                 ThemeCard(
                     "Clair", Icons.Rounded.LightMode, listOf(Color(0xFF4DB6FF), Color(0xFF0A74D9)),
                     Prefs.theme == "light", Modifier.weight(1f)
-                ) { Prefs.setTheme("light") }
+                ) { Prefs.changeTheme("light") }
                 ThemeCard(
                     "Spécial", Icons.Rounded.AutoAwesome, listOf(Color(0xFFFF7AC6), Color(0xFF6A52A3)),
                     Prefs.theme == "special", Modifier.weight(1f)
-                ) { Prefs.setTheme("special") }
+                ) { Prefs.changeTheme("special") }
             }
         }
 
@@ -260,7 +260,7 @@ fun SettingsScreen(act: FragmentActivity) {
                     }
                     Switch(
                         checked = Prefs.biometric && bioOk, enabled = bioOk,
-                        onCheckedChange = { Prefs.setBiometric(it) }
+                        onCheckedChange = { Prefs.changeBiometric(it) }
                     )
                 }
             }
