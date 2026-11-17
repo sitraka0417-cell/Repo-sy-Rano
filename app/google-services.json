@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "13872997753",
+    "project_id": "ranorepo-sitraka",
+    "storage_bucket": "ranorepo-sitraka.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13872997753:android:84e5e9eb9f528c7e3c3ba8",
+        "android_client_info": {
+          "package_name": "mg.sitraka.ranorepo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "13872997753-0smvfr5a925vg3p1tsgncq9p0rnef90p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "mg.sitraka.ranorepo",
+            "certificate_hash": "c8e73387c474dc21d5bcc1ef60fad82ccfe1ce5c"
+          }
+        },
+        {
+          "client_id": "13872997753-radjataeo509s6vck09r4tf8fm4dtrr1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJbVBf6lHLclqv3fbHXoMzCTqaoFG8_WE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "13872997753-radjataeo509s6vck09r4tf8fm4dtrr1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
